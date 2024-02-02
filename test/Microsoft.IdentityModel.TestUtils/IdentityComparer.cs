@@ -592,8 +592,9 @@ namespace Microsoft.IdentityModel.TestUtils
                 return context.Merge(localContext);
             }
 
-            string str1 = jsonElement1.GetRawText();
-            string str2 = jsonElement2.GetRawText();
+
+            string str1 = JsonSerializer.Serialize(jsonElement1);
+            string str2 = JsonSerializer.Serialize(jsonElement2);
 
             if (str1 != str2)
             {
@@ -816,7 +817,14 @@ namespace Microsoft.IdentityModel.TestUtils
 
                     var obj1 = dictionary1[key];
                     var obj2 = dictionary2[key];
-                    if (obj1.GetType().BaseType == typeof(System.ValueType))
+                    if (obj1 is JsonElement jsonElement1 && obj2 is JsonElement jsonElement2)
+                    {
+                        if (!AreJsonElementsEqual(jsonElement1, jsonElement2, context))
+                        {
+                            localContext.Diffs.Add(BuildStringDiff(key, obj1, obj2));
+                        }
+                    }
+                    else if (obj1.GetType().BaseType == typeof(System.ValueType))
                     {
                         if (_equalityDict.TryGetValue(obj1.GetType().ToString(), out var func))
                         {

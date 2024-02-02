@@ -45,7 +45,7 @@ namespace Microsoft.IdentityModel.Protocols.OpenIdConnect.Tests
             // reading form a file that does not exist
             configuration = await GetConfigurationAsync(
                 "FileDoesNotExist.json",
-                ExpectedException.IOException(inner: typeof(FileNotFoundException)), null, context);
+                ExpectedException.IOException(inner: typeof(FileNotFoundException)), null, context);            
             TestUtilities.AssertFailIfErrors(context);
         }
 

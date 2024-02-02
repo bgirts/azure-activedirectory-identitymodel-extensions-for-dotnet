@@ -124,6 +124,9 @@ namespace Microsoft.IdentityModel.Protocols.OpenIdConnect
 
             while(reader.Read())
             {
+                if (JsonPrimitives.IsReaderAtTokenType(ref reader, JsonTokenType.EndObject, false))
+                    break;
+
                 #region Check property name using ValueTextEquals
                 // the config spec, https://datatracker.ietf.org/doc/html/rfc7517#section-4, does not require that we reject JSON with
                 // duplicate member names, in strict mode, we could add logic to try a property once and throw if a duplicate shows up.
@@ -447,9 +450,6 @@ namespace Microsoft.IdentityModel.Protocols.OpenIdConnect
                         #endregion case-insensitive
                     }
                 }
-
-                if (JsonPrimitives.IsReaderAtTokenType(ref reader, JsonTokenType.EndObject, false))
-                    break;
             }
 
             return config;

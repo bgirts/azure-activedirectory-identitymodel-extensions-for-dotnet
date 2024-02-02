@@ -2,6 +2,8 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 using Microsoft.IdentityModel.TestUtils;
 using Microsoft.IdentityModel.Tokens;
 
@@ -22,6 +24,29 @@ namespace Microsoft.IdentityModel.Protocols.OpenIdConnect.Tests
                 var config = Default;
                 config.JsonWebKeySet = DataSets.JsonWebKeySet1;
                 config.AdditionalData["microsoft_multi_refresh_token"] = true;
+                config.AdditionalData["additional_data_section_start"] = "start";
+                config.AdditionalData["pushed_authorization_request_endpoint"] = "https://additionaldata/oauth/v2/oauth-authorize/par";
+                config.AdditionalData["backchannel_authentication_endpoint_auth_methods_supported"] =
+                    JsonSerializer.Deserialize<JsonElement>(@"[""client_secret_post"",""client_secret_basic"",""client_secret_jwt""]");
+                config.AdditionalData["tls_client_certificate_bound_access_tokens"] = false;
+                config.AdditionalData["backchannel_logout_session_supported"] = true;
+                config.AdditionalData["backchannel_authentication_request_signing_alg_values_supported"] =
+                    JsonSerializer.Deserialize<JsonElement>(@"[""PS256"",""ES256""]");
+                config.AdditionalData["mtls_endpoint_aliases"] =
+                    JsonSerializer.Deserialize<JsonElement>(
+                    """
+                        {
+                            "token_endpoint":"https://additionaldata/oauth/v2/oauth-token",
+                            "revocation_endpoint":"https://additionaldata/oauth/v2/oauth-revoke",
+                            "introspection_endpoint":"https://additionaldata/oauth/v2/oauth-introspect",
+                            "pushed_authorization_request_endpoint":"https://additionaldata/oauth/v2/oauth-authorize/par",
+                            "userinfo_endpoint":"https://additionaldata/oauth/v2/oauth-userinfo",
+                            "backchannel_authentication_endpoint":"https://additionaldata/token-service/oauth-backchannel-authentication"
+                        }
+                    """);
+                config.AdditionalData["revocation_endpoint_auth_signing_alg_values_supported"] =
+                    JsonSerializer.Deserialize<JsonElement>(@"[""HS512""]");
+                config.AdditionalData["additional_data_section_end"] = "end";
                 config.SigningKeys.Add(KeyingMaterial.RsaSecurityKey1);
                 config.SigningKeys.Add(KeyingMaterial.RsaSecurityKey2);
                 config.SigningKeys.Add(KeyingMaterial.X509SecurityKey1);
@@ -38,115 +63,144 @@ namespace Microsoft.IdentityModel.Protocols.OpenIdConnect.Tests
         public static string AccountsGoogle = "https://accounts.google.com/.well-known/openid-configuration";
         public static string BadUri = "_____NoSuchfile____";
         public static string HttpsBadUri = "https://_____NoSuchfile____";
-        public static string OpenIdConnectMetadataPingString = @"{""authorization_endpoint"":""https:\/\/connect-interop.pinglabs.org:9031\/as\/authorization.oauth2"",
-                                                                  ""issuer"":""https:\/\/connect-interop.pinglabs.org:9031"",
-                                                                  ""id_token_signing_alg_values_supported"":[""none"",""HS256"",""HS384"",""HS512"",""RS256"",""RS384"",""RS512"",""ES256"",""ES384"",""ES512""],
-                                                                  ""claim_types_supported"":[""normal""],
-                                                                  ""claims_parameter_supported"":false,
-                                                                  ""ping_end_session_endpoint"":""https:\/\/connect-interop.pinglabs.org:9031\/idp\/startSLO.ping"",
-                                                                  ""ping_revoked_sris_endpoint"":""https:\/\/connect-interop.pinglabs.org:9031\/pf-ws\/rest\/sessionMgmt\/revokedSris"",
-                                                                  ""request_parameter_supported"":false,
-                                                                  ""request_uri_parameter_supported"":false,
-                                                                  ""response_modes_supported"":[""fragment"",""query"",""form_post""],
-                                                                  ""response_types_supported"":[""code"",""token"",""id_token"",""code token"",""code id_token"",""token id_token"",""code token id_token""],
-                                                                  ""revocation_endpoint"":""https:\/\/connect-interop.pinglabs.org:9031\/as\/revoke_token.oauth2"",
-                                                                  ""scopes_supported"":[""phone"",""address"",""email"",""openid"",""profile""],
-                                                                  ""subject_types_supported"":[""public""],
-                                                                  ""token_endpoint"":""https:\/\/connect-interop.pinglabs.org:9031\/as\/token.oauth2"",
-                                                                  ""token_endpoint_auth_methods_supported"":[""client_secret_basic"",""client_secret_post""],
-                                                                  ""userinfo_endpoint"":""https:\/\/connect-interop.pinglabs.org:9031\/idp\/userinfo.openid"",
-                                                                  ""version"":""3.0""}";
+        public static string OpenIdConnectMetadataPingString =
+        """
+        {
+            "authorization_endpoint":"https:\/\/connect-interop.pinglabs.org:9031\/as\/authorization.oauth2",
+            "issuer":"https:\/\/connect-interop.pinglabs.org:9031",
+            "id_token_signing_alg_values_supported":["none","HS256","HS384","HS512","RS256","RS384","RS512","ES256","ES384","ES512"],
+            "claim_types_supported":["normal"],
+            "claims_parameter_supported":false,
+            "ping_end_session_endpoint":"https:\/\/connect-interop.pinglabs.org:9031\/idp\/startSLO.ping",
+            "ping_revoked_sris_endpoint":"https:\/\/connect-interop.pinglabs.org:9031\/pf-ws\/rest\/sessionMgmt\/revokedSris",
+            "request_parameter_supported":false,
+            "request_uri_parameter_supported":false,
+            "response_modes_supported":["fragment","query","form_post"],
+            "response_types_supported":["code","token","id_token","code token","code id_token","token id_token","code token id_token"],
+            "revocation_endpoint":"https:\/\/connect-interop.pinglabs.org:9031\/as\/revoke_token.oauth2",
+            "scopes_supported":["phone","address","email","openid","profile"],
+            "subject_types_supported":["public"],
+            "token_endpoint":"https:\/\/connect-interop.pinglabs.org:9031\/as\/token.oauth2",
+            "token_endpoint_auth_methods_supported":["client_secret_basic","client_secret_post"],
+            "userinfo_endpoint":"https:\/\/connect-interop.pinglabs.org:9031\/idp\/userinfo.openid",
+            "version":"3.0"
+        }
+        """;
 
-        public static string JsonFile = @"OpenIdConnectMetadata.json";
-        public static string OpenIdConnectMetadataFileEnd2End = @"OpenIdConnectMetadataEnd2End.json";
-        public static string OpenIdConnectMetadataFileEnd2EndEC = @"OpenIdConnectMetadataEnd2EndEC.json";
-        public static string JsonWebKeySetBadUriFile = @"OpenIdConnectMetadataJsonWebKeySetBadUri.json";
+        public static string JsonFile = "OpenIdConnectMetadata.json";
+        public static string OpenIdConnectMetadataFileEnd2End = "OpenIdConnectMetadataEnd2End.json";
+        public static string OpenIdConnectMetadataFileEnd2EndEC = "OpenIdConnectMetadataEnd2EndEC.json";
+        public static string JsonWebKeySetBadUriFile = "OpenIdConnectMetadataJsonWebKeySetBadUri.json";
         public static string JsonAllValues =
-                                            @"{ ""acr_values_supported"" : [""acr_value1"", ""acr_value2"", ""acr_value3""],
-                                                ""authorization_endpoint"" : ""https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/authorize"",
-                                                ""frontchannel_logout_session_supported"": ""true"",
-                                                ""frontchannel_logout_supported"": ""true"",
-                                                ""check_session_iframe"":""https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/checksession"",
-                                                ""claims_locales_supported"" : [ ""claim_local1"", ""claim_local2"", ""claim_local3"" ],
-                                                ""claims_parameter_supported"" : true,
-                                                ""claims_supported"": [ ""sub"", ""iss"", ""aud"", ""exp"", ""iat"", ""auth_time"", ""acr"", ""amr"", ""nonce"", ""email"", ""given_name"", ""family_name"", ""nickname"" ],
-                                                ""claim_types_supported"" : [ ""Normal Claims"", ""Aggregated Claims"", ""Distributed Claims"" ],
-                                                ""display_values_supported"" : [ ""displayValue1"", ""displayValue2"", ""displayValue3"" ],
-                                                ""end_session_endpoint"" : ""https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/logout"",
-                                                ""grant_types_supported"" : [""authorization_code"",""implicit""],
-                                                ""http_logout_supported"" : true,
-                                                ""id_token_encryption_alg_values_supported"" : [""RSA1_5"", ""A256KW""],
-                                                ""id_token_encryption_enc_values_supported"" : [""A128CBC-HS256"",""A256CBC-HS512""],
-                                                ""id_token_signing_alg_values_supported"" : [""RS256""],
-                                                ""introspection_endpoint"" : ""https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/introspect"",
-                                                ""introspection_endpoint_auth_methods_supported"" : [""client_secret_post"",""private_key_jwt""],
-                                                ""introspection_endpoint_auth_signing_alg_values_supported"" : [""ES192"", ""ES256""],
-                                                ""issuer"" : ""https://sts.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/"",
-                                                ""jwks_uri"" : ""JsonWebKeySet.json"",
-                                                ""logout_session_supported"" : true,
-                                                ""microsoft_multi_refresh_token"" : true,
-                                                ""op_policy_uri"" : ""https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/op_policy_uri"",
-                                                ""op_tos_uri"" : ""https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/op_tos_uri"",
-                                                ""request_object_encryption_alg_values_supported"" : [""A192KW"", ""A256KW""],
-                                                ""request_object_encryption_enc_values_supported"" : [""A192GCM"",""A256GCM""],
-                                                ""request_object_signing_alg_values_supported"" : [""PS256"", ""PS512""],
-                                                ""request_parameter_supported"" : true,
-                                                ""request_uri_parameter_supported"" : true,
-                                                ""require_request_uri_registration"" : true,
-                                                ""response_modes_supported"" : [""query"", ""fragment"",""form_post""],
-                                                ""response_types_supported"" : [""code"",""id_token"",""code id_token""],
-                                                ""service_documentation"" : ""https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/service_documentation"",
-                                                ""scopes_supported"" : [""openid""],
-                                                ""subject_types_supported"" : [""pairwise""],
-                                                ""token_endpoint"" : ""https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/token"",
-                                                ""token_endpoint_auth_methods_supported"" : [""client_secret_post"",""private_key_jwt""],
-                                                ""token_endpoint_auth_signing_alg_values_supported"" : [""ES192"", ""ES256""],
-                                                ""ui_locales_supported"" : [""hak-CN"", ""en-us""],
-                                                ""userinfo_endpoint"" : ""https://login.microsoftonline.com/add29489-7269-41f4-8841-b63c95564420/openid/userinfo"",
-                                                ""userinfo_encryption_alg_values_supported"" : [""ECDH-ES+A128KW"",""ECDH-ES+A192KW""],
-                                                ""userinfo_encryption_enc_values_supported"" : [""A256CBC-HS512"", ""A128CBC-HS256""],
-                                                ""userinfo_signing_alg_values_supported"" : [""ES384"", ""ES512""]
-                                            }";
+        """
+        {
+            "acr_values_supported": ["acr_value1","acr_value2","acr_value3"],
+            "authorization_endpoint": "https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/authorize",
+            "frontchannel_logout_session_supported": "true",
+            "frontchannel_logout_supported": "true",
+            "additional_data_section_start":"start",
+            "pushed_authorization_request_endpoint": "https://additionaldata/oauth/v2/oauth-authorize/par",
+            "backchannel_authentication_endpoint_auth_methods_supported": ["client_secret_post","client_secret_basic","client_secret_jwt"],
+            "tls_client_certificate_bound_access_tokens": false,
+            "backchannel_logout_session_supported": true,
+            "backchannel_authentication_request_signing_alg_values_supported": ["PS256","ES256"],
+            "mtls_endpoint_aliases": {
+                "token_endpoint": "https://additionaldata/oauth/v2/oauth-token",
+                "revocation_endpoint": "https://additionaldata/oauth/v2/oauth-revoke",
+                "introspection_endpoint": "https://additionaldata/oauth/v2/oauth-introspect",
+                "pushed_authorization_request_endpoint": "https://additionaldata/oauth/v2/oauth-authorize/par",
+                "userinfo_endpoint": "https://additionaldata/oauth/v2/oauth-userinfo",
+                "backchannel_authentication_endpoint": "https://additionaldata/token-service/oauth-backchannel-authentication"
+            },
+            "revocation_endpoint_auth_signing_alg_values_supported": ["HS512"],
+            "additional_data_section_end":"end",
+            "check_session_iframe":"https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/checksession",
+            "claims_locales_supported": ["claim_local1","claim_local2","claim_local3"],
+            "claims_parameter_supported": true,
+            "claims_supported": ["sub","iss","aud","exp","iat","auth_time","acr","amr","nonce","email","given_name","family_name","nickname"],
+            "claim_types_supported": ["Normal Claims","Aggregated Claims","Distributed Claims"],
+            "display_values_supported": ["displayValue1","displayValue2","displayValue3"],
+            "end_session_endpoint": "https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/logout",
+            "grant_types_supported": ["authorization_code","implicit"],
+            "http_logout_supported": true,
+            "id_token_encryption_alg_values_supported": ["RSA1_5","A256KW"],
+            "id_token_encryption_enc_values_supported": ["A128CBC-HS256","A256CBC-HS512"],
+            "id_token_signing_alg_values_supported": ["RS256"],
+            "introspection_endpoint": "https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/introspect",
+            "introspection_endpoint_auth_methods_supported": ["client_secret_post","private_key_jwt"],
+            "introspection_endpoint_auth_signing_alg_values_supported": ["ES192","ES256"],
+            "issuer": "https://sts.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/",
+            "jwks_uri": "JsonWebKeySet.json",
+            "logout_session_supported": true,
+            "microsoft_multi_refresh_token": true,
+            "op_policy_uri": "https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/op_policy_uri",
+            "op_tos_uri": "https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/op_tos_uri",
+            "request_object_encryption_alg_values_supported": ["A192KW","A256KW"],
+            "request_object_encryption_enc_values_supported": ["A192GCM","A256GCM"],
+            "request_object_signing_alg_values_supported": ["PS256","PS512"],
+            "request_parameter_supported": true,
+            "request_uri_parameter_supported": true,
+            "require_request_uri_registration": true,
+            "response_modes_supported": ["query","fragment","form_post"],
+            "response_types_supported": ["code","id_token","code id_token"],
+            "service_documentation": "https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/service_documentation",
+            "scopes_supported": ["openid"],
+            "subject_types_supported": ["pairwise"],
+            "token_endpoint": "https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/token",
+            "token_endpoint_auth_methods_supported": ["client_secret_post","private_key_jwt"],
+            "token_endpoint_auth_signing_alg_values_supported": ["ES192","ES256"],
+            "ui_locales_supported": ["hak-CN","en-us"],
+            "userinfo_endpoint": "https://login.microsoftonline.com/add29489-7269-41f4-8841-b63c95564420/openid/userinfo",
+            "userinfo_encryption_alg_values_supported": ["ECDH-ES+A128KW","ECDH-ES+A192KW"],
+            "userinfo_encryption_enc_values_supported": ["A256CBC-HS512","A128CBC-HS256"],
+            "userinfo_signing_alg_values_supported": ["ES384","ES512"]
+        }
+        """;
 
         public static string OpenIdConnectMetadataSingleX509DataString =
-                                            @"{ ""authorization_endpoint"":""https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/authorize"",
-                                                ""check_session_iframe"":""https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/checksession"",
-                                                ""end_session_endpoint"":""https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/logout"",
-                                                ""id_token_signing_alg_values_supported"":[""RS256""],
-                                                ""issuer"":""https://sts.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/"",
-                                                ""jwks_uri"":""JsonWebKeySetSingleX509Data.json"",
-                                                ""microsoft_multi_refresh_token"":true,
-                                                ""response_types_supported"":[""code"",""id_token"",""code id_token""],
-                                                ""response_modes_supported"":[""query"",""fragment"",""form_post""],
-                                                ""scopes_supported"":[""openid""],
-                                                ""subject_types_supported"":[""pairwise""],
-                                                ""token_endpoint"":""https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/token"",
-                                                ""token_endpoint_auth_methods_supported"":[""client_secret_post"",""private_key_jwt""]
-                                            }";
+        """
+        {
+            "authorization_endpoint":"https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/authorize",
+            "check_session_iframe":"https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/checksession",
+            "end_session_endpoint":"https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/logout",
+            "id_token_signing_alg_values_supported":["RS256"],
+            "issuer":"https://sts.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/",
+            "jwks_uri":"JsonWebKeySetSingleX509Data.json",
+            "microsoft_multi_refresh_token":true,
+            "response_types_supported":["code","id_token","code id_token"],
+            "response_modes_supported":["query","fragment","form_post"],
+            "scopes_supported":["openid"],
+            "subject_types_supported":["pairwise"],
+            "token_endpoint":"https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/token",
+            "token_endpoint_auth_methods_supported":["client_secret_post","private_key_jwt"]
+        }
+        """;
 
         public static string JsonWithSigningKeys =
-                                            @"{ ""authorization_endpoint"":""https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/authorize"",
-                                                ""check_session_iframe"":""https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/checksession"",
-                                                ""end_session_endpoint"":""https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/logout"",
-                                                ""id_token_signing_alg_values_supported"":[""RS256""],
-                                                ""issuer"":""https://sts.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/"",
-                                                ""jwks_uri"":""JsonWebKeySetSingleX509Data.json"",
-                                                ""microsoft_multi_refresh_token"":true,
-                                                ""response_types_supported"":[""code"",""id_token"",""code id_token""],
-                                                ""response_modes_supported"":[""query"",""fragment"",""form_post""],
-                                                ""scopes_supported"":[""openid""],
-                                                ""subject_types_supported"":[""pairwise""],
-                                                ""token_endpoint"":""https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/token"",
-                                                ""token_endpoint_auth_methods_supported"":[""client_secret_post"",""private_key_jwt""],
-                                                ""SigningKeys"":[""key1"",""key2""]
-                                            }";
+        """
+        { "authorization_endpoint":"https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/authorize",
+            "check_session_iframe":"https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/checksession",
+            "end_session_endpoint":"https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/logout",
+            "id_token_signing_alg_values_supported":["RS256"],
+            "issuer":"https://sts.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/",
+            "jwks_uri":"JsonWebKeySetSingleX509Data.json",
+            "microsoft_multi_refresh_token":true,
+            "response_types_supported":["code","id_token","code id_token"],
+            "response_modes_supported":["query","fragment","form_post"],
+            "scopes_supported":["openid"],
+            "subject_types_supported":["pairwise"],
+            "token_endpoint":"https://login.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/oauth2/token",
+            "token_endpoint_auth_methods_supported":["client_secret_post","private_key_jwt"],
+            "SigningKeys":["key1","key2"]
+        }
+        """;
 
         public static string OpenIdConnectMetadataBadX509DataString = @"{""jwks_uri"":""JsonWebKeySetBadX509Data.json""}";
         public static string OpenIdConnectMetadataBadBase64DataString = @"{""jwks_uri"":""JsonWebKeySetBadBase64Data.json""}";
         public static string OpenIdConnectMetadataBadUriKeysString = @"{""jwks_uri"":""___NoSuchFile___""}";
         public static string OpenIdConnectMetadataBadFormatString = @"{""issuer""::""https://sts.windows.net/d062b2b0-9aca-4ff7-b32a-ba47231a4002/""}";
         public static string OpenIdConnectMetadataPingLabsJWKSString = @"{""jwks_uri"":""PingLabsJWKS.json""}";
-        public static string OpenIdConnectMetatadataBadJson = @"{...";
+        public static string OpenIdConnectMetatadataBadJson = "{...";
 
         public static string MixedCaseNames =
         """
@@ -254,7 +308,8 @@ namespace Microsoft.IdentityModel.Protocols.OpenIdConnect.Tests
 
             // matches with OpenIdConnectMetadataString
             SetDefaultConfiguration(FullyPopulated);
-            FullyPopulated.AdditionalData["microsoft_multi_refresh_token"] = true;
+            FullyPopulatedWithKeys.AdditionalData.ToList().ForEach(
+                x => FullyPopulated.AdditionalData.Add(x));
 
             // Config with X509Data
             SingleX509Data.AdditionalData["microsoft_multi_refresh_token"] = true;
